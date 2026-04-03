@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LiquidType v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+/* ── THEMES ── */
+:root{--bg1:#000;--bg2:#0d0000;--bg3:#1a0000;--accent:#e60000;--accent2:#ff3333;--accent3:#ff6666;--card:rgba(30,0,0,.75);--cb:rgba(200,0,0,.25);--text:#f5f5f5;--muted:rgba(255,255,255,.4);--glow:0 0 16px rgba(200,0,0,.5);--glow2:0 0 28px rgba(200,0,0,.3);--ok:#00e676;--bad:#ff1744;--bar:rgba(255,255,255,.08);--inp:rgba(0,0,0,.4)}
+body.theme-disco{--bg1:#0a001a;--bg2:#00001a;--bg3:#001a0d;--accent:#ff00ff;--accent2:#00ffff;--accent3:#ffff00;--card:rgba(20,0,40,.8);--cb:rgba(255,0,255,.3);--glow:0 0 16px rgba(255,0,255,.5);--glow2:0 0 28px rgba(0,255,255,.3)}
+body.theme-ocean{--bg1:#000e1a;--bg2:#001a33;--bg3:#002244;--accent:#00aaff;--accent2:#33ccff;--accent3:#66ddff;--card:rgba(0,15,40,.75);--cb:rgba(0,150,255,.25);--glow:0 0 16px rgba(0,150,255,.5);--glow2:0 0 28px rgba(0,150,255,.3)}
+body.theme-synthwave{--bg1:#0d0020;--bg2:#1a0030;--bg3:#0a0015;--accent:#ff00cc;--accent2:#cc00ff;--accent3:#ff66ee;--card:rgba(20,0,40,.75);--cb:rgba(200,0,255,.25);--glow:0 0 16px rgba(200,0,255,.5);--glow2:0 0 28px rgba(200,0,255,.3)}
+body.theme-midnight{--bg1:#05050f;--bg2:#080820;--bg3:#0a0a30;--accent:#6666ff;--accent2:#8888ff;--accent3:#aaaaff;--card:rgba(8,8,30,.75);--cb:rgba(100,100,255,.25);--glow:0 0 16px rgba(100,100,255,.5);--glow2:0 0 28px rgba(100,100,255,.3)}
+body.theme-toxic{--bg1:#001400;--bg2:#001a00;--bg3:#002200;--accent:#00ff44;--accent2:#33ff66;--accent3:#66ff88;--card:rgba(0,20,0,.75);--cb:rgba(0,200,60,.25);--glow:0 0 16px rgba(0,200,60,.5);--glow2:0 0 28px rgba(0,200,60,.3)}
+body.theme-sunset{--bg1:#120005;--bg2:#1a0010;--bg3:#200020;--accent:#ff6600;--accent2:#ff9900;--accent3:#ffcc00;--card:rgba(25,5,0,.75);--cb:rgba(255,100,0,.25);--glow:0 0 16px rgba(255,100,0,.5);--glow2:0 0 28px rgba(255,100,0,.3)}
+body.theme-custom-gradient{--bg1:var(--cg1,#001a2e);--bg2:var(--cg2,#002b4d);--bg3:var(--cg3,#003d6b);--accent:var(--cga,#00c8ff);--accent2:var(--cgb,#00e5ff);--accent3:var(--cgc,#80f0ff);--card:rgba(0,20,40,.7);--cb:rgba(0,200,255,.25);--glow:0 0 16px rgba(0,200,255,.5)}
+body.theme-depoule{--bg1:#000a05;--bg2:#001a10;--bg3:#002b1a;--accent:#00aa66;--accent2:#00ff99;--accent3:#66ffcc;--card:rgba(0,20,10,.75);--cb:rgba(0,200,120,.25);--glow:0 0 16px rgba(0,200,120,.5);--glow2:0 0 28px rgba(0,200,120,.3)}
+
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg3) 100%);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;transition:background .5s}
+body.theme-disco{animation:hueRot 4s infinite}
+@keyframes hueRot{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+
+/* ── SETUP BANNER ── */
+#setup-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#331100;border-bottom:2px solid #f60;padding:10px 20px;font-size:.9rem;color:#fa4;text-align:center}
+#setup-banner a{color:#fd8;text-decoration:underline}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;z-index:2000;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.ld-logo{font-family:'Bebas Neue',cursive;font-size:3rem;letter-spacing:3px;color:#cc0000}
+.ld-dots{display:flex;gap:6px}
+.ld-dot{width:8px;height:8px;border-radius:50%;background:#cc0000;animation:db 1s infinite}
+.ld-dot:nth-child(2){animation-delay:.15s}.ld-dot:nth-child(3){animation-delay:.3s}
+@keyframes db{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* ── AUTH ── */
+#auth{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1000;background:linear-gradient(135deg,#000 0%,#1a0000 60%,#000 100%)}
+.abox{width:370px;background:#0f0000;border:1px solid #550000;border-radius:6px;padding:34px 30px}
+.alogo{font-family:'Bebas Neue',cursive;font-size:2.8rem;letter-spacing:2px;text-align:center;color:#cc0000;margin-bottom:4px}
+.atag{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:32px}
+.atabs{display:flex;border:1px solid #330000;border-radius:4px;overflow:hidden;margin-bottom:22px}
+.atab{flex:1;padding:9px;border:none;background:transparent;color:#777;font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:.15s}
+.atab.on{background:#cc0000;color:#fff}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:.75rem;letter-spacing:1px;text-transform:uppercase;color:#777;margin-bottom:5px}
+.field input{width:100%;padding:9px 11px;background:#0a0000;border:1px solid #440000;border-radius:4px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none}
+.field input:focus{border-color:#cc0000}
+.abtn{width:100%;padding:11px;background:#cc0000;border:none;border-radius:4px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:6px}
+.abtn:hover{background:#dd0000}.abtn:disabled{opacity:.5;cursor:not-allowed}
+.amsg{text-align:center;margin-top:11px;font-size:.88rem;min-height:18px}
+.amsg.err{color:#f44}.amsg.ok{color:#4f8}
+
+/* ── APP LAYOUT ── */
+#app{display:none;min-height:100vh}
+.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;padding:0 18px;height:52px;background:#0a0000;border-bottom:1px solid #330000}
+.nav-logo{font-family:'Bebas Neue',cursive;font-size:1.55rem;letter-spacing:2px;color:#cc0000;margin-right:24px}
+.nav-tabs{display:flex;gap:2px;flex:1}
+.ntab{padding:6px 15px;border:none;background:transparent;color:#555;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.15s}
+.ntab:hover{color:#bbb}.ntab.on{color:#ff3333;border-bottom:2px solid #cc0000}
+.nav-r{display:flex;align-items:center;gap:7px;margin-left:auto}
+.coins{display:flex;align-items:center;gap:4px;border:1px solid #443300;border-radius:4px;padding:3px 9px;font-weight:700;font-size:.88rem}
+#coin-count{color:#ffd700}
+.ubadge{background:#1a0000;border:1px solid #440000;border-radius:4px;padding:3px 9px;font-weight:600;font-size:.82rem}
+.nbtn{padding:4px 10px;border-radius:4px;border:1px solid;font-family:'Rajdhani',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s;text-transform:uppercase}
+.nbtn.out{background:transparent;border-color:#333;color:#666}.nbtn.out:hover{border-color:#c00;color:#c00}
+.nbtn.adm{background:#1a0d00;border-color:#664400;color:#cc7700}.nbtn.adm:hover{background:#2a1500}
+.nbtn.dep{background:#001a10;border-color:#005533;color:#00aa66}.nbtn.dep:hover{background:#002a18}
+
+/* ── TAB CONTENT ── */
+.tab{display:none;padding:28px 20px;max-width:1100px;margin:0 auto}.tab.on{display:block}
+
+/* ── RACE TAB ── */
+.race-hdr{text-align:center;margin-bottom:28px}
+.race-ttl{font-family:'Bebas Neue',cursive;font-size:2.3rem;letter-spacing:3px;color:#cc0000}
+.race-sub{color:var(--muted);letter-spacing:2px;font-size:.85rem;margin-top:3px}
+.track{background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:var(--glow2);position:relative;min-height:80px}
+.rrow{display:flex;align-items:center;gap:12px;margin-bottom:12px}.rrow:last-child{margin-bottom:0}
+.rlabel{width:145px;font-weight:700;font-size:.85rem;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rlabel.you{color:var(--accent2)}.rlabel.bot{color:var(--muted)}.rlabel.live{color:#ffd700}
+.rbar-wrap{flex:1;height:24px;background:var(--bar);border-radius:12px;overflow:hidden}
+.rbar{height:100%;border-radius:12px;transition:width .25s linear;width:0%;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;font-size:.68rem;font-weight:700;white-space:nowrap}
+.rbar.you{background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 8px rgba(200,0,0,.4)}
+.rbar.bot{background:linear-gradient(90deg,rgba(100,100,100,.5),rgba(180,180,180,.5))}
+.rbar.opp{background:linear-gradient(90deg,#ffd700,#ffaa00);box-shadow:0 0 8px rgba(255,180,0,.4)}
+.rwpm{width:58px;text-align:right;font-size:.8rem;color:var(--muted);font-weight:600;flex-shrink:0}
+.typing-area{background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:24px;margin-bottom:18px}
+.ptext{font-family:'JetBrains Mono',monospace;font-size:1.05rem;line-height:2;margin-bottom:18px;min-height:52px}
+.ptext .ok{color:var(--ok)}.ptext .bad{color:var(--bad);background:rgba(255,23,68,.13);border-radius:2px}
+.ptext .cur{border-bottom:2px solid var(--accent)}.ptext .dim{color:rgba(255,255,255,.28)}
+.tinput{width:100%;padding:11px 15px;background:var(--inp);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:1rem;outline:none;caret-color:var(--accent)}
+.tinput:focus{border-color:var(--accent)}.tinput:disabled{opacity:.4;cursor:not-allowed}
+.rctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+.rbtn{padding:10px 24px;border:none;border-radius:8px;background:#cc0000;color:#fff;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:.15s}
+.rbtn:hover{background:#dd0000}.rbtn:disabled{opacity:.5;cursor:not-allowed}
+.rbtn.live-btn{background:linear-gradient(135deg,#004488,#0066cc)}
+.rbtn.live-btn:hover{background:linear-gradient(135deg,#005599,#0077dd)}
+.stat-box{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border-radius:6px;padding:6px 12px;font-size:.88rem}
+.slbl{color:var(--muted);letter-spacing:1px}.sval{font-weight:700;color:var(--accent2)}
+.result-box{display:none;background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:28px;text-align:center;box-shadow:var(--glow2);margin-top:18px}
+.rplace{font-family:'Bebas Neue',cursive;font-size:4.5rem;letter-spacing:4px;margin-bottom:6px}
+.rplace.p1{color:#ffd700}.rplace.p2{color:#c0c0c0}.rplace.p3{color:#cd7f32}.rplace.p4{color:var(--muted)}
+.rlabel2{font-size:1rem;color:var(--muted);letter-spacing:2px;margin-bottom:14px}
+.rcoins{font-size:1.4rem;font-weight:700;color:#ffd700;margin-bottom:18px}
+.rstats{display:flex;justify-content:center;gap:28px;margin-bottom:20px}
+.rst{text-align:center}.rstv{font-size:1.8rem;font-weight:700;color:var(--accent2)}.rstl{font-size:.75rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+/* Countdown */
+.cdown{display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,.72);border-radius:14px;z-index:10}
+.cdown.on{display:flex}
+.cnum{font-family:'Bebas Neue',cursive;font-size:7rem;color:var(--accent);text-shadow:0 0 40px rgba(200,0,0,.8);animation:cpop .45s ease}
+@keyframes cpop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+/* Searching */
+.searching-ui{display:none;background:rgba(0,0,100,.15);border:1px solid rgba(0,100,255,.3);border-radius:14px;padding:28px;text-align:center;margin-bottom:18px}
+.searching-ui.on{display:block}
+.search-title{font-family:'Bebas Neue',cursive;font-size:1.8rem;letter-spacing:3px;color:#4499ff;margin-bottom:8px}
+.search-status{color:var(--muted);font-size:.95rem;margin-bottom:12px}
+.search-timer{font-size:2rem;font-weight:700;color:#4499ff;margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.search-matched{display:none;color:#4f8;font-size:1.1rem;font-weight:700;letter-spacing:1px}
+
+/* ── SHOP ── */
+.shop-hdr{text-align:center;margin-bottom:28px}
+.shop-ttl{font-family:'Bebas Neue',cursive;font-size:2.8rem;letter-spacing:4px;color:var(--accent2)}
+.shop-bal{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,200,0,.3);border-radius:20px;padding:7px 18px;margin-top:7px;font-size:1rem;font-weight:700;color:#ffd700}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.tcard{background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:22px;transition:.2s;position:relative;overflow:hidden}
+.tcard:hover{border-color:var(--accent);box-shadow:var(--glow)}
+.tprev{height:90px;border-radius:9px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:1.2rem;letter-spacing:2px}
+.prev-default{background:linear-gradient(135deg,#000,#1a0000,#3d0000);color:#f44}
+.prev-disco{background:linear-gradient(135deg,#f0f,#0ff,#ff0,#f0f);background-size:400%;animation:danim 2s infinite;color:#fff}
+@keyframes danim{0%{background-position:0%50%}50%{background-position:100%50%}100%{background-position:0%50%}}
+.prev-ocean{background:linear-gradient(135deg,#000e1a,#001a33,#003366);color:#33ccff}
+.prev-synthwave{background:linear-gradient(135deg,#0d0020,#1a0030,#300060);color:#ff00cc;text-shadow:0 0 8px #ff00cc}
+.prev-midnight{background:linear-gradient(135deg,#05050f,#0a0a28,#10105a);color:#8888ff}
+.prev-toxic{background:linear-gradient(135deg,#001400,#002200,#004400);color:#00ff44;text-shadow:0 0 8px #00ff44}
+.prev-sunset{background:linear-gradient(135deg,#1a0010,#300020,#200040);color:#ff6600}
+.prev-depoule{background:linear-gradient(135deg,#000a05,#001a10,#005533);color:#00ff99;text-shadow:0 0 8px #00ff99}
+.prev-custom{background:linear-gradient(135deg,#001a3d,#003d6b,#0066aa);color:#00c8ff}
+.tname{font-family:'Bebas Neue',cursive;font-size:1.4rem;letter-spacing:2px;margin-bottom:3px}
+.tdesc{color:var(--muted);font-size:.88rem;margin-bottom:14px}
+.tprice{display:flex;align-items:center;gap:5px;font-weight:700;font-size:.95rem;color:#ffd700;margin-bottom:10px}
+.tbuy,.tequip,.towned{width:100%;padding:9px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;transition:.18s}
+.tbuy{background:linear-gradient(135deg,#ffd700,#cc9900);color:#000}.tbuy:hover:not(:disabled){background:linear-gradient(135deg,#ffe033,#dda800)}.tbuy:disabled{opacity:.4;cursor:not-allowed}
+.tequip{background:#cc0000;color:#fff}.tequip:hover{background:#dd0000}
+.towned{background:rgba(0,230,118,.15);border:1px solid rgba(0,230,118,.3)!important;color:#00e676;cursor:default}
+.badge-on{position:absolute;top:10px;right:10px;background:var(--accent);color:#fff;font-size:.65rem;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:3px;text-transform:uppercase}
+.badge-free{position:absolute;top:10px;right:10px;background:rgba(0,230,118,.2);border:1px solid rgba(0,230,118,.4);color:#00e676;font-size:.65rem;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:3px;text-transform:uppercase}
+
+/* ── DEPOULE NPC UI ── */
+.shop-layout{display:flex;gap:24px;align-items:flex-start}
+.shop-main{flex:1}
+.shop-side{width:320px;background:var(--card);border:1px solid var(--cb);border-radius:16px;padding:24px;position:sticky;top:70px;text-align:center;box-shadow:var(--glow2)}
+@keyframes figure8{0%{transform:translate(0,0)}25%{transform:translate(15px,10px)}50%{transform:translate(0,20px)}75%{transform:translate(-15px,10px)}100%{transform:translate(0,0)}}
+@keyframes shake{0%{transform:translate(1px,1px) rotate(0deg)}10%{transform:translate(-1px,-2px) rotate(-1deg)}20%{transform:translate(-3px,0px) rotate(1deg)}30%{transform:translate(3px,2px) rotate(0deg)}40%{transform:translate(1px,-1px) rotate(1deg)}50%{transform:translate(-1px,2px) rotate(-1deg)}100%{transform:translate(1px,-2px) rotate(-1deg)}}
+.npc-img{width:200px;border-radius:15px;border:3px solid var(--accent);margin-bottom:15px;animation:figure8 8s ease-in-out infinite;cursor:pointer;transition:transform 0.2s}
+.npc-img.shake{animation:shake 0.5s infinite!important}
+.npc-dialog{background:var(--inp);padding:15px;border-radius:10px;font-size:.85rem;line-height:1.5;margin-bottom:15px;border:1px solid rgba(255,255,255,.05)}
+.haggle-box{background:var(--card);border:1px solid var(--cb);border-radius:10px;padding:12px;margin-top:10px;display:none}
+.haggle-box.on{display:block}
+.h-input{width:100%;padding:8px;background:#000;border:1px solid #440000;border-radius:5px;color:#ffd700;font-family:'JetBrains Mono',monospace;margin-bottom:8px;outline:none}
+@media (max-width:900px){.shop-layout{flex-direction:column-reverse}.shop-side{width:100%;position:static}}
+
+.gmbox{display:none;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:18px;margin-top:14px}
+.gmbox.on{display:block}
+.gmrow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.gmlbl{color:var(--muted);font-size:.82rem;width:85px}
+.gmrow input[type="color"]{width:44px;height:34px;padding:2px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:5px;cursor:pointer}
+.gmprev{height:54px;border-radius:7px;margin-bottom:10px}
+.gapply{padding:9px 22px;border:none;border-radius:7px;background:var(--accent);color:#fff;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer}
+
+/* ── CHAT ── */
+.chat-wrap{max-width:780px;margin:0 auto}
+.chat-ttl{font-family:'Bebas Neue',cursive;font-size:2.3rem;letter-spacing:3px;color:var(--accent2);text-align:center;margin-bottom:22px}
+.chatbox{background:var(--card);border:1px solid var(--cb);border-radius:14px;overflow:hidden;box-shadow:var(--glow2)}
+.msgs{height:460px;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:9px}
+.msgs::-webkit-scrollbar{width:5px}.msgs::-webkit-scrollbar-thumb{background:rgba(200,0,0,.3);border-radius:3px}
+.cmsg{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);animation:min .2s ease}
+@keyframes min{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.cavatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#800000);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;text-transform:uppercase}
+.cbody{flex:1}.chdr{display:flex;align-items:baseline;gap:7px;margin-bottom:2px}
+.cuser{font-weight:700;font-size:.88rem;color:var(--accent2)}.ctime{font-size:.72rem;color:var(--muted)}
+.ctext{font-size:.92rem;line-height:1.5;word-break:break-word}
+.chat-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:9px}
+.cinput{flex:1;padding:11px 14px;background:var(--inp);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.95rem;outline:none}
+.cinput:focus{border-color:var(--accent)}
+.csend{padding:11px 22px;border:none;border-radius:9px;background:#cc0000;color:#fff;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer}
+.csend:hover{background:#dd0000}
+
+/* ── LEADERBOARD ── */
+.lbtable{width:100%;border-collapse:collapse}
+.lbtable th{text-align:left;padding:9px 11px;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.07)}
+.lbtable td{padding:11px;font-size:.92rem;border-bottom:1px solid rgba(255,255,255,.04)}
+.lbrank{font-family:'Bebas Neue',cursive;font-size:1.2rem;color:var(--muted)}
+.lbrank.r1{color:#ffd700}.lbrank.r2{color:#c0c0c0}.lbrank.r3{color:#cd7f32}
+.lbname{font-weight:700}.lbcoins{color:#ffd700;font-weight:700}
+
+/* ── MODALS ── */
+.moverlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:18px}
+.moverlay.on{display:flex}
+.modal{background:#0a0000;border:1px solid rgba(200,0,0,.4);border-radius:14px;padding:28px;width:100%;max-width:660px;max-height:90vh;overflow-y:auto;box-shadow:0 0 60px rgba(200,0,0,.2);animation:mshow .22s ease}
+.modal.dp{border-color:rgba(0,200,150,.4);box-shadow:0 0 60px rgba(0,200,150,.15)}
+@keyframes mshow{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.mttl{font-family:'Bebas Neue',cursive;font-size:1.9rem;letter-spacing:3px;margin-bottom:5px;color:var(--accent2)}
+.modal.dp .mttl{color:#00c896}
+.msub{color:var(--muted);font-size:.82rem;letter-spacing:2px;margin-bottom:22px}
+.mpw{display:flex;gap:9px;margin-bottom:22px}
+.mpw input{flex:1;padding:11px 13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none}
+.mpw input:focus{border-color:var(--accent)}
+.munlock{padding:11px 18px;border:none;border-radius:7px;background:#cc7700;color:#000;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer}
+.munlock:hover{background:#dd8800}.munlock.dp{background:#00c896;color:#fff}
+.mlocked{text-align:center;padding:18px}
+.mulocked{display:none}.mulocked.on{display:block}
+.msec{margin-bottom:26px}
+.msec-ttl{font-family:'Bebas Neue',cursive;font-size:1.2rem;letter-spacing:2px;color:#ffa500;margin-bottom:10px;border-bottom:1px solid rgba(255,165,0,.2);padding-bottom:5px}
+.msec-ttl.dp{color:#00c896;border-color:rgba(0,200,150,.2)}
+.atable{width:100%;border-collapse:collapse}
+.atable th{text-align:left;padding:7px 9px;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.07)}
+.atable td{padding:9px;font-size:.88rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.atable tr:hover td{background:rgba(255,255,255,.03)}
+.tdpass{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:#f98}
+.tdcoins{color:#ffd700;font-weight:700}
+.tdact{display:flex;gap:5px;flex-wrap:wrap}
+.bsm{padding:4px 9px;border-radius:5px;border:none;font-family:'Rajdhani',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer}
+.bsm.give{background:rgba(0,230,118,.2);color:#00e676;border:1px solid rgba(0,230,118,.3)}.bsm.give:hover{background:rgba(0,230,118,.35)}
+.bsm.take{background:rgba(255,165,0,.2);color:#ffa500;border:1px solid rgba(255,165,0,.3)}.bsm.take:hover{background:rgba(255,165,0,.35)}
+.bsm.del,.bsm.rm{background:rgba(255,0,0,.15);color:#f44;border:1px solid rgba(255,0,0,.25)}.bsm.del:hover,.bsm.rm:hover{background:rgba(255,0,0,.3)}
+.coinamt{width:55px;padding:4px 7px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:5px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:.82rem;text-align:center;outline:none}
+.mcmsg{display:flex;align-items:center;gap:9px;padding:7px;border-bottom:1px solid rgba(255,255,255,.04)}
+.mcmsg-txt{flex:1;font-size:.85rem}
+.mcuser{font-weight:700;color:var(--accent2);margin-right:5px}
+.mbtnclose{margin-top:7px;padding:9px 22px;border:none;border-radius:7px;background:rgba(255,255,255,.08);color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;float:right}
+.mbtnclose:hover{background:rgba(255,255,255,.14);color:var(--text)}
+.empty{text-align:center;padding:36px;color:var(--muted);font-size:.88rem}
+.toast{position:fixed;bottom:22px;right:22px;z-index:9999;background:rgba(15,0,0,.97);border:1px solid var(--accent);border-radius:9px;padding:13px 18px;font-weight:600;font-size:.88rem;letter-spacing:1px;box-shadow:var(--glow);animation:tin .3s ease;pointer-events:none}
+@keyframes tin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.card-panel{background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:22px;box-shadow:var(--glow2)}
+
+/* ── PROFILE MODAL ── */
+.modal.profile{max-width:420px;border-color:rgba(200,0,0,.35)}
+.prof-top{display:flex;align-items:center;gap:18px;margin-bottom:24px}
+.prof-avatar{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#800000);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:2rem;flex-shrink:0;border:2px solid rgba(200,0,0,.4);box-shadow:var(--glow)}
+.prof-info{flex:1}
+.prof-name{font-family:'Bebas Neue',cursive;font-size:2rem;letter-spacing:2px;color:var(--text);line-height:1}
+.prof-badge{display:inline-block;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;padding:3px 8px;border-radius:3px;margin-top:5px;background:rgba(200,0,0,.15);border:1px solid rgba(200,0,0,.3);color:var(--accent2)}
+.prof-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px}
+.prof-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:13px 10px;text-align:center}
+.prof-stat-val{font-family:'Bebas Neue',cursive;font-size:1.6rem;letter-spacing:1px}
+.prof-stat-val.gold{color:#ffd700}
+.prof-stat-val.fire{color:#ff6600}
+.prof-stat-val.blue{color:var(--accent2)}
+.prof-stat-lbl{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.prof-theme-row{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.prof-theme-dot{width:16px;height:16px;border-radius:50%;border:1px solid rgba(255,255,255,.2)}
+.prof-theme-lbl{font-size:.78rem;color:var(--muted);letter-spacing:1px}
+.prof-actions{display:flex;gap:9px;flex-direction:column}
+.gift-row{display:flex;gap:8px;align-items:center}
+.gift-input{flex:1;padding:10px 12px;background:var(--inp);border:1px solid #440000;border-radius:7px;color:#ffd700;font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;outline:none;text-align:center}
+.gift-input:focus{border-color:#ffd700}
+.gift-btn{padding:10px 20px;border:none;border-radius:7px;background:linear-gradient(135deg,#cc7700,#ffaa00);color:#000;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1px;cursor:pointer;white-space:nowrap}
+.gift-btn:hover{background:linear-gradient(135deg,#dd8800,#ffbb00)}
+.gift-btn:disabled{opacity:.4;cursor:not-allowed}
+.prof-self-note{text-align:center;color:var(--muted);font-size:.82rem;padding:8px;font-style:italic}
+.cuser{cursor:pointer;transition:color .15s}.cuser:hover{color:#fff;text-decoration:underline}
+</style>
+</head>
+<body class="theme-default">
+
+<div id="setup-banner">⚠ Firebase not configured — open liquidtype2.html, find <b>YOUR_PROJECT_ID</b> and paste your config. <a href="https://console.firebase.google.com/" target="_blank">Get config →</a></div>
+
+<div id="loading"><div class="ld-logo">LiquidType</div><div class="ld-dots"><div class="ld-dot"></div><div class="ld-dot"></div><div class="ld-dot"></div></div></div>
+
+<div id="auth">
+  <div class="abox">
+    <div class="alogo">LiquidType</div>
+    <div class="atag">Race · Type · Win</div>
+    <div class="atabs">
+      <button class="atab on" id="tab-li" onclick="switchAuth('login')">Login</button>
+      <button class="atab" id="tab-re" onclick="switchAuth('register')">Register</button>
+    </div>
+    <div id="li-form">
+      <div class="field"><label>Username</label><input id="li-u" type="text" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>Password</label><input id="li-p" type="password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="abtn" id="li-btn" onclick="doLogin()">Enter The Race</button>
+      <div class="amsg" id="li-msg"></div>
+    </div>
+    <div id="re-form" style="display:none">
+      <div class="field"><label>Username</label><input id="re-u" type="text" autocomplete="off" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <div class="field"><label>Password</label><input id="re-p" type="password" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <button class="abtn" id="re-btn" onclick="doRegister()">Create Account</button>
+      <div class="amsg" id="re-msg"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <nav class="nav">
+    <div class="nav-logo">LiquidType</div>
+    <div class="nav-tabs">
+      <button class="ntab on" onclick="goTab('race')">🏁 Race</button>
+      <button class="ntab" onclick="goTab('shop')">🛒 Shop</button>
+      <button class="ntab" onclick="goTab('chat')">💬 Chat</button>
+      <button class="ntab" onclick="goTab('lb')">🏆 Leaderboard</button>
+    </div>
+    <div class="nav-r">
+      <div class="coins">🪙 <span id="coin-count">0</span></div>
+      <div class="ubadge" id="nav-user" onclick="openProfile(getU())" style="cursor:pointer;border-color:#553300;color:#ffaa44" title="View your profile">—</div>
+      <a href="gamble.html" class="nbtn" style="background:#1a0d00;border-color:#664400;color:#cc7700;text-decoration:none">🎰 Gamble</a>
+      <button class="nbtn dep" onclick="openDP()">DePoule</button>
+      <button class="nbtn adm" onclick="openAdmin()">⚙ Admin</button>
+      <button class="nbtn out" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- RACE -->
+  <div id="tab-race" class="tab on">
+    <div class="race-hdr"><div class="race-ttl">Type. Race. Win.</div><div class="race-sub">Beat bots or real players — earn coins</div></div>
+    <!-- Searching UI -->
+    <div class="searching-ui" id="searching-ui">
+      <div class="search-title">🌐 Live Race</div>
+      <div class="search-status" id="search-status">Searching for opponents...</div>
+      <div class="search-timer" id="search-timer">0s</div>
+      <div class="search-matched" id="search-matched"></div>
+      <button class="rbtn" style="background:#444;margin-top:4px" onclick="cancelLiveSearch()">Cancel</button>
+    </div>
+    <div class="track" id="track"><div class="cdown" id="cdown"><div class="cnum" id="cnum">3</div></div><div id="racers"></div></div>
+    <div class="typing-area"><div class="ptext" id="ptext"><span style="color:var(--muted);font-size:.88rem">Press Start Race to begin…</span></div><input class="tinput" id="tinput" disabled autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Waiting…"></div>
+    <div class="rctrl">
+      <button class="rbtn" id="btn-solo" onclick="startSolo()">🏁 Start Race</button>
+      <button class="rbtn live-btn" id="btn-live" onclick="startLiveSearch()">🌐 Live Race</button>
+      <div class="stat-box"><span class="slbl">WPM</span><span class="sval" id="s-wpm">0</span></div>
+      <div class="stat-box"><span class="slbl">Accuracy</span><span class="sval" id="s-acc">100%</span></div>
+      <div class="stat-box"><span class="slbl">Time</span><span class="sval" id="s-time">0s</span></div>
+    </div>
+    <div class="result-box" id="result-box">
+      <div class="rplace" id="r-place">1ST</div><div class="rlabel2">PLACE</div>
+      <div class="rcoins" id="r-coins">+50 🪙</div>
+      <div class="rstats">
+        <div class="rst"><div class="rstv" id="r-wpm">—</div><div class="rstl">WPM</div></div>
+        <div class="rst"><div class="rstv" id="r-acc">—</div><div class="rstl">Accuracy</div></div>
+        <div class="rst"><div class="rstv" id="r-time">—</div><div class="rstl">Time</div></div>
+      </div>
+      <button class="rbtn" onclick="resetRace()">Race Again</button>
+    </div>
+  </div>
+
+  <!-- SHOP -->
+  <div id="tab-shop" class="tab">
+    <div class="shop-hdr"><div class="shop-ttl">Theme Shop</div><div class="shop-bal">🪙 <span id="shop-coins">0</span> coins</div></div>
+    <div class="shop-layout">
+      <div class="shop-main">
+        <div class="sgrid" id="sgrid"></div>
+      </div>
+      <div class="shop-side">
+        <div style="font-family:'Bebas Neue',cursive;font-size:1.5rem;letter-spacing:2px;color:var(--accent2);margin-bottom:10px">DePoule's Corner</div>
+        <img src="noob.png" id="npc-img" class="npc-img" onclick="petDepoule()" alt="DePoule">
+        <div class="npc-dialog" id="npc-text">"Browse my wares, mortal. Don't touch the glass."</div>
+        
+        <div id="haggle-ui" class="haggle-box">
+          <div style="font-size:.7rem;text-transform:uppercase;margin-bottom:5px;color:var(--muted)">Offer for <span id="h-item-name">Item</span></div>
+          <input type="number" id="h-amt" class="h-input" placeholder="Offer coins...">
+          <button class="bsm give" style="width:100%" onclick="haggleWithDepoule()">Submit Offer</button>
+        </div>
+
+        <button class="rbtn" id="btn-bribe" style="width:100%;margin-top:10px;font-size:.8rem;padding:8px;background:#e67e22;display:none" onclick="bribeDepoule()">Bribe (1000 🪙)</button>
+        <button class="rbtn" id="btn-pet" style="width:100%;margin-top:10px;font-size:.8rem;padding:8px;background:#00aa66" onclick="petDepoule()">Pet DePoule</button>
+        <div id="pet-stats" style="display:none;font-size:.7rem;margin-top:8px;color:var(--accent3)">Taps: <span id="pet-val">0</span>/100</div>
+      </div>
+    </div>
+    <div class="gmbox" id="gmbox">
+      <div style="font-family:'Bebas Neue',cursive;font-size:1.2rem;letter-spacing:2px;margin-bottom:12px;color:#00c8ff">Custom Gradient Maker</div>
+      <div class="gmrow"><span class="gmlbl">BG Dark</span><input type="color" id="gm1" value="#001a2e" oninput="gmPreview()"></div>
+      <div class="gmrow"><span class="gmlbl">BG Mid</span><input type="color" id="gm2" value="#002b4d" oninput="gmPreview()"></div>
+      <div class="gmrow"><span class="gmlbl">BG Light</span><input type="color" id="gm3" value="#003d6b" oninput="gmPreview()"></div>
+      <div class="gmrow"><span class="gmlbl">Accent</span><input type="color" id="gma" value="#00c8ff" oninput="gmPreview()"></div>
+      <div class="gmprev" id="gmprev"></div>
+      <button class="gapply" onclick="applyGradient()">Apply Theme</button>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="tab-chat" class="tab">
+    <div class="chat-wrap">
+      <div class="chat-ttl">Live Chat</div>
+      <div class="chatbox">
+        <div class="msgs" id="msgs"></div>
+        <div class="chat-foot">
+          <input class="cinput" id="cinput" placeholder="Say something…" maxlength="250" onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="csend" onclick="sendChat()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div id="tab-lb" class="tab">
+    <div style="text-align:center;margin-bottom:24px"><div style="font-family:'Bebas Neue',cursive;font-size:2.8rem;letter-spacing:4px;color:var(--accent2)">Leaderboard</div><div style="color:var(--muted);letter-spacing:2px;font-size:.88rem">Top Coin Earners — Live Across All Devices</div></div>
+    <div class="card-panel"><table class="lbtable"><thead><tr><th>#</th><th>Player</th><th>🪙 Coins</th><th>Themes</th></tr></thead><tbody id="lb-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="moverlay" id="prof-overlay">
+  <div class="modal profile">
+    <div class="prof-top">
+      <div class="prof-avatar" id="prof-avatar">?</div>
+      <div class="prof-info">
+        <div class="prof-name" id="prof-name">—</div>
+        <div class="prof-badge" id="prof-badge">Member</div>
+      </div>
+    </div>
+    <div class="prof-stats">
+      <div class="prof-stat"><div class="prof-stat-val gold" id="prof-coins">0</div><div class="prof-stat-lbl">🪙 Coins</div></div>
+      <div class="prof-stat"><div class="prof-stat-val fire" id="prof-streak">0</div><div class="prof-stat-lbl">🔥 Streak</div></div>
+      <div class="prof-stat"><div class="prof-stat-val blue" id="prof-themes">0</div><div class="prof-stat-lbl">🎨 Themes</div></div>
+    </div>
+    <div class="prof-theme-row" id="prof-theme-row"></div>
+    <div class="prof-actions" id="prof-actions">
+      <div class="gift-row">
+        <input class="gift-input" id="gift-amt" type="number" min="1" placeholder="Amount…" value="10">
+        <button class="gift-btn" id="gift-btn" onclick="giftCoins()">🎁 Gift Coins</button>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <button class="mbtnclose" onclick="closeProfile()">Close</button>
+      <div style="clear:both"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Modal -->
+<div class="moverlay" id="adm-overlay">
+  <div class="modal">
+    <div class="mttl">⚙ Admin Panel</div><div class="msub">LiquidType Control Center</div>
+    <div id="adm-lock"><div class="mlocked"><div style="font-size:2.8rem;margin-bottom:10px">🔒</div><div style="color:var(--muted);margin-bottom:14px">Enter admin password</div><div class="mpw"><input type="password" id="adm-pw" placeholder="Password…" onkeydown="if(event.key==='Enter')tryAdmin()"><button class="munlock" onclick="tryAdmin()">Unlock</button></div><div style="color:#f44;font-size:.82rem;min-height:16px" id="adm-err"></div></div></div>
+    <div class="mulocked" id="adm-open">
+      <div class="msec"><div class="msec-ttl">📋 All Accounts</div><table class="atable"><thead><tr><th>User</th><th>Password</th><th>Coins</th><th>Actions</th></tr></thead><tbody id="adm-tbody"></tbody></table></div>
+      <div class="msec"><div class="msec-ttl">💬 Chat Messages</div><div id="adm-chat"></div></div>
+    </div>
+    <button class="mbtnclose" onclick="closeAdmin()">Close</button><div style="clear:both"></div>
+  </div>
+</div>
+
+<!-- DePoule Modal -->
+<div class="moverlay" id="dp-overlay">
+  <div class="modal dp">
+    <div class="mttl">🦆 DePoule Panel</div><div class="msub">Message Moderation</div>
+    <div id="dp-lock"><div class="mlocked"><div style="font-size:2.8rem;margin-bottom:10px">🦆</div><div style="color:var(--muted);margin-bottom:14px">Enter DePoule password</div><div class="mpw"><input type="password" id="dp-pw" placeholder="Password…" onkeydown="if(event.key==='Enter')tryDP()"><button class="munlock dp" onclick="tryDP()">Unlock</button></div><div style="color:#f44;font-size:.82rem;min-height:16px" id="dp-err"></div></div></div>
+    <div class="mulocked" id="dp-open"><div class="msec"><div class="msec-ttl dp">💬 Remove Messages</div><div id="dp-chat"></div></div></div>
+    <button class="mbtnclose" style="background:rgba(0,200,150,.1);color:#00c896" onclick="closeDP()">Close</button><div style="clear:both"></div>
+  </div>
+</div>
+
+<script>
+  
+const FB = {
+  apiKey:            "AIzaSyBgppLaWv-3M9IsCzUtDD5Z8pqUxPtdPLk",
+  authDomain:        "liquidtipe.firebaseapp.com",
+  projectId:         "liquidtipe",
+  storageBucket:     "liquidtipe.firebasestorage.app",
+  messagingSenderId: "765092878295",
+  appId:             "1:765092878295:web:e63bf4df58cee3141d5d92"
+};
+
+// ── FIREBASE INIT ──────────────────────────────────────
+let db, FB_READY = false;
+function initFB() {
+  if (FB.projectId === 'YOUR_PROJECT_ID') { document.getElementById('setup-banner').style.display='block'; return false; }
+  try { firebase.initializeApp(FB); db = firebase.firestore(); FB_READY = true; return true; }
+  catch(e) { console.error('Firebase failed:',e); return false; }
+}
+
+// ── SESSION ────────────────────────────────────────────
+function getU() { return localStorage.getItem('lt_u') || null; }
+function setU(u) { u ? localStorage.setItem('lt_u',u) : localStorage.removeItem('lt_u'); }
+let UC = null; // user cache
+
+// ── DATA LAYER ─────────────────────────────────────────
+async function dbGetUser(u) {
+  if (FB_READY) { const d=await db.collection('users').doc(u).get(); return d.exists?d.data():null; }
+  return (JSON.parse(localStorage.getItem('lt_accs')||'[]')).find(a=>a.username===u)||null;
+}
+async function dbAllUsers() {
+  if (FB_READY) { const s=await db.collection('users').get(); return s.docs.map(d=>d.data()); }
+  return JSON.parse(localStorage.getItem('lt_accs')||'[]');
+}
+async function dbCreateUser(data) {
+  if (FB_READY) { await db.collection('users').doc(data.username).set(data); return; }
+  const a=JSON.parse(localStorage.getItem('lt_accs')||'[]'); a.push(data); localStorage.setItem('lt_accs',JSON.stringify(a));
+}
+async function dbUpdateUser(u, ch) {
+  if (FB_READY) { await db.collection('users').doc(u).update(ch); }
+  else { const a=JSON.parse(localStorage.getItem('lt_accs')||'[]'),i=a.findIndex(x=>x.username===u); if(i>=0){Object.assign(a[i],ch);localStorage.setItem('lt_accs',JSON.stringify(a));} }
+  if (u===getU()&&UC) Object.assign(UC,ch);
+}
+async function dbDeleteUser(u) {
+  if (FB_READY) { await db.collection('users').doc(u).delete(); return; }
+  const a=JSON.parse(localStorage.getItem('lt_accs')||'[]').filter(x=>x.username!==u); localStorage.setItem('lt_accs',JSON.stringify(a));
+}
+
+// chat
+let chatCache=[], chatUnsub=null;
+function startChatListener() {
+  if (chatUnsub) try{chatUnsub();}catch(e){clearInterval(chatUnsub);}
+  if (FB_READY) {
+    chatUnsub = db.collection('messages').orderBy('ts').limitToLast(150).onSnapshot(s=>{
+      chatCache=s.docs.map(d=>d.data()); renderChat();
+      if(admOpen)renderAdmChat(); if(dpOpen)renderDPChat();
+    });
+  } else {
+    const poll=()=>{chatCache=JSON.parse(localStorage.getItem('lt_chat')||'[]');renderChat();};
+    poll(); chatUnsub=setInterval(poll,2500);
+  }
+}
+async function dbAddMsg(m) {
+  if (FB_READY) { await db.collection('messages').doc(m.id).set(m); return; }
+  const c=JSON.parse(localStorage.getItem('lt_chat')||'[]'); c.push(m); if(c.length>200)c.splice(0,c.length-200); localStorage.setItem('lt_chat',JSON.stringify(c)); chatCache=c; renderChat();
+}
+async function dbDelMsg(id) {
+  if (FB_READY) { await db.collection('messages').doc(id).delete(); return; }
+  chatCache=chatCache.filter(m=>m.id!==id); localStorage.setItem('lt_chat',JSON.stringify(chatCache)); renderChat(); if(admOpen)renderAdmChat(); if(dpOpen)renderDPChat();
+}
+
+// ── STREAK HELPER ─────────────────────────────────────
+function todayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function calcStreak(acc){
+  const today=todayStr(), yesterday=yesterdayStr();
+  const last=acc.lastLoginDate||'';
+  if(last===today) return {streak:acc.streak||1,lastLoginDate:today};
+  if(last===yesterday) return {streak:(acc.streak||0)+1,lastLoginDate:today};
+  return {streak:1,lastLoginDate:today};
+}
+
+// ── AUTH ───────────────────────────────────────────────
+function switchAuth(tab) {
+  document.getElementById('tab-li').classList.toggle('on',tab==='login');
+  document.getElementById('tab-re').classList.toggle('on',tab==='register');
+  document.getElementById('li-form').style.display=tab==='login'?'':'none';
+  document.getElementById('re-form').style.display=tab==='register'?'':'none';
+}
+async function doLogin() {
+  const u=document.getElementById('li-u').value.trim(), p=document.getElementById('li-p').value;
+  const msg=document.getElementById('li-msg'), btn=document.getElementById('li-btn');
+  if(!u||!p){msg.className='amsg err';msg.textContent='Fill in all fields.';return;}
+  btn.disabled=true; btn.textContent='Checking…';
+  const acc=await dbGetUser(u);
+  if(!acc||acc.password!==p){msg.className='amsg err';msg.textContent='Wrong username or password.';btn.disabled=false;btn.textContent='Enter The Race';return;}
+  const streakData=calcStreak(acc);
+  await dbUpdateUser(u,streakData);
+  UC={...acc,...streakData}; setU(u); msg.className='amsg ok'; msg.textContent='Welcome back!'; setTimeout(enterApp,300);
+}
+async function doRegister() {
+  const u=document.getElementById('re-u').value.trim(), p=document.getElementById('re-p').value;
+  const msg=document.getElementById('re-msg'), btn=document.getElementById('re-btn');
+  if(!u||!p){msg.className='amsg err';msg.textContent='Fill in all fields.';return;}
+  if(u.length<3){msg.className='amsg err';msg.textContent='Username must be 3+ chars.';return;}
+  if(p.length<4){msg.className='amsg err';msg.textContent='Password must be 4+ chars.';return;}
+  btn.disabled=true; btn.textContent='Checking…';
+  if(await dbGetUser(u)){msg.className='amsg err';msg.textContent='Username taken.';btn.disabled=false;btn.textContent='Create Account';return;}
+  const acc={username:u,password:p,coins:100,themes:['default'],activeTheme:'default',gradientColors:null,streak:1,lastLoginDate:todayStr()};
+  await dbCreateUser(acc); UC={...acc}; setU(u); msg.className='amsg ok'; msg.textContent='Account created!'; setTimeout(enterApp,300);
+}
+function doLogout() {
+  setU(null); UC=null; liveCleanup();
+  if(chatUnsub)try{chatUnsub();}catch(e){clearInterval(chatUnsub);}chatUnsub=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth').style.display='flex';
+  document.getElementById('li-btn').disabled=false; document.getElementById('li-btn').textContent='Enter The Race';
+  document.getElementById('re-btn').disabled=false; document.getElementById('re-btn').textContent='Create Account';
+  document.getElementById('li-msg').textContent='';
+  resetRace(); applyTheme('default',null);
+}
+function enterApp() {
+  document.getElementById('auth').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('nav-user').textContent=UC.username;
+  refreshCoins(); applyTheme(UC.activeTheme||'default',UC.gradientColors||null);
+  renderShop(); startChatListener(); renderLB();
+  startNpcCycle(); updateNpcUI();
+}
+
+// ── NAV ────────────────────────────────────────────────
+function goTab(id) {
+  document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('on',['race','shop','chat','lb'][i]===id));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  if(id==='shop')renderShop();
+  if(id==='chat')setTimeout(scrollMsgs,50);
+  if(id==='lb')renderLB();
+}
+function refreshCoins() {
+  const c=UC?(UC.coins||0):0;
+  document.getElementById('coin-count').textContent=c;
+  document.getElementById('shop-coins').textContent=c;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function esca(s){return String(s).replace(/'/g,"\\'")}
+
+// ── SOLO RACE ENGINE ────────────────────────────────────
+const PROMPTS=[
+  "The quick brown fox jumps over the lazy dog near the river bank.",
+  "Typing fast is a skill that takes practice and dedication every single day.",
+  "Liquid flows freely through every crack and crevice with unstoppable momentum.",
+  "Speed is nothing without accuracy so always focus on correct keystrokes.",
+  "The stars burned bright against the endless dark canvas of the midnight sky.",
+  "Every great journey begins with a single keystroke on the path to mastery.",
+  "Rain fell silently on the cobblestone streets as the city lights shimmered below.",
+  "Champions are made in the moments when they want to quit but push through anyway.",
+  "Technology shapes the future and those who type fast shape technology itself.",
+  "The wind whispered through the ancient trees carrying secrets of forgotten worlds.",
+  "Persistence is the hidden engine beneath every great achievement in history.",
+  "Silence filled the room as fingers danced across the illuminated keyboard tonight."
+];
+const BOT_NAMES=['Ytggobs','TheFinnyShow','Doodlehoney2018','Marco'];
+const COIN_REWARDS=[50,30,15,5];
+const PLABELS=['1ST','2ND','3RD','4TH'];
+const PCSS=['p1','p2','p3','p4'];
+
+let RS={active:false,prompt:'',typed:'',startTime:null,endTime:null,bots:[],botIvs:[],timerIv:null,finished:false,finishOrder:[],errors:0,mode:'solo'};
+let lastLen=0;
+
+function startSolo() {
+  if(RS.active||liveRS.searching||liveRS.active)return;
+  RS={active:false,prompt:PROMPTS[Math.floor(Math.random()*PROMPTS.length)],typed:'',startTime:null,endTime:null,
+    bots:BOT_NAMES.map(n=>({name:n,wpm:Math.floor(Math.random()*36)+45,progress:0,finished:false,finishTime:null,expectedMs:0})),
+    botIvs:[],timerIv:null,finished:false,finishOrder:[],errors:0,mode:'solo'};
+  const wc=RS.prompt.trim().split(/\s+/).length;
+  RS.bots.forEach(b=>b.expectedMs=(wc/b.wpm)*60000);
+  renderPromptText(); renderRacers('solo');
+  document.getElementById('result-box').style.display='none';
+  document.getElementById('btn-solo').style.display='none';
+  document.getElementById('btn-live').style.display='none';
+  resetStats();
+  countdown(()=>beginSolo());
+}
+
+function beginSolo() {
+  RS.active=true; RS.startTime=Date.now();
+  const inp=document.getElementById('tinput');
+  inp.disabled=false; inp.value=''; lastLen=0; inp.focus();
+  RS.botIvs=RS.bots.map((b,i)=>setInterval(()=>{
+    if(!RS.active||b.finished)return;
+    const elapsed=Date.now()-RS.startTime;
+    b.progress=Math.min(1,elapsed/b.expectedMs);
+    const pct=Math.round(b.progress*100);
+    const bar=document.getElementById('bar-bot-'+i);
+    if(bar){bar.style.width=pct+'%';const lbl=document.getElementById('bpct-'+i);if(lbl)lbl.textContent=pct+'%';}
+    document.getElementById('bwpm-'+i).textContent=b.wpm+' wpm';
+    if(b.progress>=1&&!b.finished){
+      b.finished=true; b.finishTime=Date.now();
+      RS.finishOrder.push({type:'bot',name:b.name,time:b.finishTime});
+    }
+  },100));
+  RS.timerIv=setInterval(()=>{
+    if(!RS.active)return;
+    const e=(Date.now()-RS.startTime);
+    document.getElementById('s-time').textContent=(e/1000).toFixed... (37 KB left)
+message.txt
+87 KB
