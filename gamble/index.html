@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LiquidType — Gamble</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+</head>
+<body>
+
+<div id="page-loading">
+  <div class="ld-logo">LiquidType</div>
+  <div class="ld-dots"><div class="ld-dot"></div><div class="ld-dot"></div><div class="ld-dot"></div></div>
+</div>
+
+<div class="topbar">
+  <a class="tlogo" href="index.html">LiquidType <span>← Back to Game</span></a>
+  <div class="tnav">
+    <div class="coin-bar">🪙 <span id="nav-coins">0</span></div>
+    <span id="nav-user" style="color:var(--muted);font-size:.85rem;font-weight:600"></span>
+    <button class="tlink" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<div id="not-logged">
+  <p>You need to be logged in to gamble.</p>
+  <a class="go-btn" href="index.html">Go to LiquidType →</a>
+</div>
+
+<div id="gamble-ui" style="display:none;width:100%;display:flex;flex-direction:column;align-items:center">
+  <div class="gcard">
+    <div class="gtitle">🎰 Coin Flip</div>
+    <div class="gsub">50 / 50 · Double or Nothing</div>
+
+    <div class="bal-row">
+      <span class="bal-label">Your Balance</span>
+      <span class="bal-amount">🪙 <span id="g-coins">0</span></span>
+    </div>
+
+    <!-- Coin visual -->
+    <div class="coin-wrap">
+      <div class="coin" id="coin">🪙</div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-area" id="result-area"></div>
+
+    <!-- Bet input -->
+    <div class="bet-section">
+      <span class="bet-label">Bet Amount</span>
+      <div class="bet-row">
+        <input class="bet-input" id="bet-input" type="number" min="1" max="999999" placeholder="0" value="10">
+      </div>
+      <div class="quick-btns">
+        <button class="qbtn" id="qb-10" onclick="setBet(10)">10</button>
+        <button class="qbtn" id="qb-25" onclick="setBet(25)">25</button>
+        <button class="qbtn" id="qb-50" onclick="setBet(50)">50</button>
+        <button class="qbtn" id="qb-100" onclick="setBet(100)">100</button>
+        <button class="qbtn" id="qb-half" onclick="setBetHalf()">Half</button>
+        <button class="qbtn" id="qb-all" onclick="setBetAll()">All In</button>
+      </div>
+    </div>
+
+    <!-- Flip button -->
+    <button class="flip-btn" id="flip-btn" onclick="doFlip()">🪙 FLIP</button>
+
+    <!-- Session stats -->
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-lbl">Flips</div><div class="stat-val gold" id="st-flips">0</div></div>
+      <div class="stat-box"><div class="stat-lbl">Wins</div><div class="stat-val green" id="st-wins">0</div></div>
+      <div class="stat-box"><div class="stat-lbl">Losses</div><div class="stat-val red" id="st-losses">0</div></div>
+      <div class="stat-box"><div class="stat-lbl">Net</div><div class="stat-val gold" id="st-net">0</div></div>
+    </div>
+
+    <!-- History -->
+    <div class="hist-title">Recent Flips</div>
+    <div class="hist-list" id="hist-list"></div>
+  </div>
+</div>
+</body>
+</html>
