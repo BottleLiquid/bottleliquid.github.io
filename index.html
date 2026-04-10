@@ -13,7 +13,11 @@
 
 <div id="setup-banner">⚠ Firebase not configured — open liquidtype2.html, find <b>YOUR_PROJECT_ID</b> and paste your config. <a href="https://console.firebase.google.com/" target="_blank">Get config →</a></div>
 
-<div id="loading"><div class="ld-logo">LiquidType</div><div class="ld-dots"><div class="ld-dot"></div><div class="ld-dot"></div><div class="ld-dot"></div></div></div>
+<div id="loading">
+  <div class="ld-logo">LiquidType</div>
+  <div class="ld-dots"><div class="ld-dot"></div><div class="ld-dot"></div><div class="ld-dot"></div></div>
+  <div class="ld-status" id="ld-status">Starting engine...</div>
+</div>
 
 <div id="auth">
   <div class="abox">
@@ -50,7 +54,7 @@
     <div class="nav-r">
       <div class="coins">🪙 <span id="coin-count">0</span></div>
       <div class="ubadge" id="nav-user" onclick="openProfile(getU())" style="cursor:pointer;border-color:#553300;color:#ffaa44" title="View your profile">—</div>
-      <a href="gamble.html" class="nbtn" style="background:#1a0d00;border-color:#664400;color:#cc7700;text-decoration:none">🎰 Gamble</a>
+      <a href="/gamble/index.html" class="nbtn" style="background:#1a0d00;border-color:#664400;color:#cc7700;text-decoration:none">🎰 Gamble</a>
       <button class="nbtn dep" onclick="openDP()">DePoule</button>
       <button class="nbtn adm" onclick="openAdmin()">⚙ Admin</button>
       <button class="nbtn out" onclick="doLogout()">Logout</button>

@@ -156,7 +156,7 @@ const PROMPTS=[
   "Sad Music (()()()()()()()",
   "If scripting is your power then what are you without it?",
   "Freed or Jeed. Hmm idk dawg.",
-  "The wind whispers "Pancakes in my ears",
+  "The wind whispers Pancakes in my ears",
   "JOE BIDEN'S SONE",
   "Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule "
 ];
@@ -911,14 +911,23 @@ window.addEventListener('beforeunload',()=>{if(liveRS.lobbyId&&liveRS.role==='ho
 
 // ── INIT ─────────────────────────────────────────────────
 async function init() {
+  const setStatus = (msg) => { const el = document.getElementById('ld-status'); if(el) el.textContent = msg; };
+
+  setStatus('Connecting to database...');
   initFB();
+
+  setStatus('Loading resources...');
   gmPreview();
+
+  setStatus('Checking session...');
   const cur=getU();
   if(cur){
+    setStatus(`Fetching profile: ${cur}...`);
     const acc=await dbGetUser(cur);
     if(acc){UC={...acc};document.getElementById('loading').style.display='none';enterApp();return;}
     else setU(null);
   }
+  setStatus('Ready.');
   document.getElementById('loading').style.display='none';
   document.getElementById('auth').style.display='flex';
 }
