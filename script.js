@@ -191,13 +191,12 @@ const DEPOULE_PROMPTS=[
   "This is a long line of typing",
   "DOODLEHONEYOWNSTHESKY",
   "Im in the thick of it everybody knows, They know me where it snows I skate in and they froze.",
-  "Sad Music (()()()()()()()",
+  "PEterful wrote these sentences!",
   "If scripting is your power then what are you without it?",
   "Freed or Jeed. Hmm idk dawg.",
   "The wind whispers Pancakes in my ears",
   "KNEEL KNEEEEL I SAID KNEEEEEEEEEEEELLLLLLLLLLLLLL KNEEEELLLLL KNEEEEEEEEEEEEEEEEEEEEEEEEEEEEL",
   "Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule "
-  "PEterful wrote these sentences"
 ];
 const NORMAL_PROMPTS=[
   "It just works, it just works! Little lies, stunning shows, People buy, money flows, it just works!",
