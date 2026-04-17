@@ -206,7 +206,6 @@ const NORMAL_PROMPTS=[
   "These sentances aren't randomly generated like nitrotype.",
   "Typing is fun. Type this sentance for fun.",
   "I haven't finished my AR goal."
-  "Finn wrote these sentences"
 ];
 const BOT_NAMES=['Ytggobs','TheFinnyShow','Doodlehoney2018','Marco'];
 const REWARDS_NORMAL=[40,25,10,5];
