@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINATED</title>
+    <style>
+        :root {
+            --red: #ff0000;
+            --dark-red: #440000;
+            --bg: #000000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Arial Black', sans-serif;
+        }
+
+        /* Ambient Background Smoke/Noise */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.8) 100%),
+                        url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* The Main Container */
+        .container {
+            position: relative;
+            text-align: center;
+            animation: impact 0.4s ease-out forwards;
+        }
+
+        /* Cinematic Text Styling */
+        .deleted {
+            color: var(--red);
+            font-size: clamp(5rem, 15vw, 12rem);
+            letter-spacing: 1.5rem;
+            position: relative;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            animation: breathe 4s infinite alternate ease-in-out;
+        }
+
+        /* Glitch Layers */
+        .deleted::before, .deleted::after {
+            content: "DELETED";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.8;
+        }
+
+        .deleted::before {
+            color: #ff00ff; /* Magenta offset */
+            z-index: -1;
+            animation: glitch-anim 0.3s infinite linear alternate-reverse;
+        }
+
+        .deleted::after {
+            color: #00ffff; /* Cyan offset */
+            z-index: -2;
+            animation: glitch-anim 0.2s infinite linear alternate;
+        }
+
+        /* Massive Impact Animation on Load */
+        @keyframes impact {
+            0% { transform: scale(5); filter: blur(20px); opacity: 0; }
+            70% { transform: scale(0.9); filter: blur(0px); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        /* Continuous Glitch Slice Effect */
+        @keyframes glitch-anim {
+            0% { clip-path: inset(10% 0 30% 0); transform: translate(-5px, -2px); }
+            20% { clip-path: inset(60% 0 10% 0); transform: translate(5px, 2px); }
+            40% { clip-path: inset(40% 0 50% 0); transform: translate(-8px, 5px); }
+            60% { clip-path: inset(80% 0 5% 0); transform: translate(8px, -5px); }
+            80% { clip-path: inset(15% 0 70% 0); transform: translate(-2px, 2px); }
+            100% { clip-path: inset(50% 0 20% 0); transform: translate(5px, -2px); }
+        }
+
+        /* Breathing Pulse */
+        @keyframes breathe {
+            0% { text-shadow: 0 0 20px var(--red); opacity: 0.9; }
+            100% { text-shadow: 0 0 60px var(--red), 0 0 100px var(--dark-red); opacity: 1; }
+        }
+
+        /* Scanning Line */
+        .scanner {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 20px var(--red);
+            animation: scan 3s infinite linear;
+            z-index: 5;
+        }
+
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        /* Red Vignette Overlay */
+        .vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 20%, rgba(50, 0, 0, 0.6) 100%);
+            pointer-events: none;
+            z-index: 15;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+    <div class="vignette"></div>
+    <div class="scanner"></div>
+
+    <div class="container">
+        <h1 class="deleted">DELETED</h1>
+    </div>
+
+</body>
+</html>

@@ -3,26 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Access Denied</title>
+    <title>Acess Denied</title>
     <style>
-        body {
+        body, html {
             background-color: black;
-            color: red;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: monospace;
+            font-family: 'Arial Black', sans-serif;
+            overflow: hidden;
+           
+            animation: rainbow-bg 0.2s linear infinite;
         }
-        
-        h1 {
-            font-size: 4rem;
+
+      
+        @keyframes rainbow-bg {
+            0% { filter: hue-rotate(0deg) brightness(1); }
+            50% { filter: hue-rotate(180deg) brightness(1.5); }
+            100% { filter: hue-rotate(360deg) brightness(1); }
+        }
+
+      
+        .master-container {
+            text-align: center;
+            animation: screen-shake 0.1s infinite;
+        }
+
+        @keyframes screen-shake {
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, -2px) rotate(1deg); }
+            40% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(3px, 1px) rotate(0deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            100% { transform: translate(1px, 2px) rotate(-1deg); }
+        }
+
+       
+        .access-denied {
+            font-size: 8rem;
+            color: #ff0000; /* Base Red */
             text-transform: uppercase;
+            letter-spacing: -5px;
+            position: relative;
+            margin: 0;
+          
+            text-shadow: 
+                5px 5px #00fff2, 
+                -5px -5px #ff00ff,
+                10px -10px #ffff00;
+            animation: glitch-text 0.05s infinite;
+        }
+
+        @keyframes glitch-text {
+            0% { transform: skew(5deg); text-shadow: 5px 5px #f00, -5px -5px #0ff; }
+            25% { transform: skew(-5deg); text-shadow: -5px 5px #0f0, 5px -5px #f0f; }
+            50% { transform: skew(10deg); text-shadow: 5px -5px #00f, -5px 5px #ff0; }
+            75% { transform: skew(-10deg); text-shadow: -10px -10px #f00, 10px 10px #0ff; }
+            100% { transform: skew(0deg); }
+        }
+
+        
+        .hazard-box {
+            position: absolute;
+            width: 100%;
+            height: 20%;
+            background: repeating-linear-gradient(
+                45deg,
+                #000,
+                #000 20px,
+                #ff0000 20px,
+                #ff0000 40px
+            );
+            z-index: -1;
+            opacity: 0.3;
+            animation: move-bg 0.5s linear infinite;
+        }
+
+        .top { top: 0; }
+        .bottom { bottom: 0; }
+
+        @keyframes move-bg {
+            from { background-position: 0 0; }
+            to { background-position: 50px 50px; }
+        }
+
+        .warning-subtext {
+            background: #ff0000;
+            color: black;
+            font-size: 2rem;
+            padding: 10px 40px;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: bold;
+            animation: strobe-black 0.1s infinite;
+        }
+
+        @keyframes strobe-black {
+            0%, 100% { background: #ff0000; color: black; }
+            50% { background: black; color: #ff0000; }
+        }
+
+       
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <h1>Access Denied</h1>
+
+    <div class="hazard-box top"></div>
+    <div class="hazard-box bottom"></div>
+    <div class="overlay"></div>
+
+    <div class="master-container">
+        <h1 class="access-denied">ACCESS<br>DENIED</h1>
+        <div class="warning-subtext">Your Cooked Buddy 💀💀💀</div>
+        <p style="color: white; font-size: 1.5rem; margin-top: 20px;">PERMANENT BAN DETECTED</p>
+    </div>
+
 </body>
 </html>
