@@ -195,8 +195,9 @@ const DEPOULE_PROMPTS=[
   "If scripting is your power then what are you without it?",
   "Freed or Jeed. Hmm idk dawg.",
   "The wind whispers Pancakes in my ears",
-  "JOE BIDEN'S SONE -;-;-;;--;;--;-",
+  "KNEEL KNEEEEL I SAID KNEEEEEEEEEEEELLLLLLLLLLLLLL KNEEEELLLLL KNEEEEEEEEEEEEEEEEEEEEEEEEEEEEL",
   "Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule Depoule "
+  "PEterful wrote these sentences"
 ];
 const NORMAL_PROMPTS=[
   "It just works, it just works! Little lies, stunning shows, People buy, money flows, it just works!",
@@ -206,6 +207,7 @@ const NORMAL_PROMPTS=[
   "These sentances aren't randomly generated like nitrotype.",
   "Typing is fun. Type this sentance for fun.",
   "I haven't finished my AR goal."
+  "Finn wrote these sentences"
 ];
 const BOT_NAMES=['Ytggobs','TheFinnyShow','Doodlehoney2018','Marco'];
 const REWARDS_NORMAL=[40,25,10,5];
